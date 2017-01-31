@@ -15,3 +15,7 @@ uint64_t encoding::decode(uint64_t ptr) {
 bool encoding::isValidPtr(uint64_t ptr) {
     return ptr > ENCODING && ptr - ENCODING < MAX_HEAP_SIZE ;
 }
+
+bool encodedPtr::isValid() {
+    return ptr > ENCODING && ptr - ENCODING < MAX_HEAP_SIZE;
+}

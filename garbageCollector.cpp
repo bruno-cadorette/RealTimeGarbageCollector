@@ -37,10 +37,13 @@ void garbageCollector::collect() {
 }
 
 bool garbageCollector::canAllocate(size_t objSize) {
-    return currentHeapSize + objSize < encoding::MAX_HEAP_SIZE;
+    return currentHeapSize + objSize < MAX_HEAP_SIZE;
 }
 
 garbageCollector& garbageCollector::get() {
     static garbageCollector gc;
     return gc;
 }
+
+
+

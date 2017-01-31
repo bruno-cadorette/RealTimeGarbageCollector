@@ -14,7 +14,7 @@ struct heapItem{
     bool marked;
     heapItem(){}
     heapItem(bool marked) : marked{marked}{}
-
+    virtual void* getItem() = 0;
     virtual ptrSize getItemSize() = 0;
     virtual std::vector<uint64_t> innerPtrs() = 0;
     virtual ~heapItem(){};
@@ -29,7 +29,9 @@ struct heapItemImpl : heapItem {
     heapItemImpl(T *item) :
             heapItem(false), item{item} {
     }
-
+    void* getItem(){
+        return (void*)item;
+    }
     std::vector<uint64_t> innerPtrs() {
         std::vector<uint64_t> v;
         auto objSize = sizeof(*item);

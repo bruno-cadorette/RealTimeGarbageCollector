@@ -21,7 +21,7 @@ class garbageCollector {
 
 public:
     template<class T>
-    std::uint64_t allocate(T *item){
+    encodedPtr allocate(T *item){
         auto size = sizeof(item);
         if (canAllocate(size))
         {
@@ -30,7 +30,7 @@ public:
             heap.push_back(hItem);
             auto index = heap.size() - 1;
             roots.push_back(index);
-            return encoding::encode(index);
+            return encodedPtr{index};
         }
         else
         {
@@ -42,9 +42,11 @@ public:
             allocate(item);
         }
     }
-
-    void removeReference(uint64_t item) {
-        auto ptr = encoding::decode(item);
+    void* operator[](const encodedPtr& ptr) {
+        return heap[ptr.decode()]->getItem();
+    }
+    void removeReference(encodedPtr item) {
+        auto ptr = item.decode();
         roots.erase(std::remove_if(roots.begin(), roots.end(), [&](std::uint64_t x){
             return ptr == x;
         }), roots.end());

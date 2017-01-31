@@ -9,14 +9,16 @@
 
 template<class T, int size = 0>
 class gcPtr {
-
+    encodedPtr ptrIndex;
 public:
-    uint64_t ptrIndex;
-    gcPtr(T* ptr = nullptr){
-        ptrIndex = garbageCollector::get().allocate(ptr);
+    gcPtr(T* a = nullptr){
+        ptrIndex = garbageCollector::get().allocate(a);
     }
     ~gcPtr(){
         garbageCollector::get().removeReference(ptrIndex);
+    }
+    T* operator->() {
+        return (T*)garbageCollector::get()[ptrIndex];
     }
 };
 

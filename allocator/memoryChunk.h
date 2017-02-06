@@ -9,17 +9,15 @@
 #include <iostream>
 #include <assert.h>
 
-//Inspired by Boehm collector
-template <unsigned int CHUNK_SIZE, unsigned int OBJ_SIZE>
+//Inspired by Boehm's collector
 class memoryChunk {
-    static_assert(CHUNK_SIZE%4096 == 0, "a memory chunk must be a multiple of 4096!");
+    static const int CHUNK_SIZE = 4096;
     struct memoryChunkHeader{
         u_int16_t size;
-        memoryChunk<CHUNK_SIZE, OBJ_SIZE>* next;
-        bool mark[CHUNK_SIZE/OBJ_SIZE];//on peut faire 8 fois mieux
+        memoryChunk* next;
     } header;
 
-    char memory[CHUNK_SIZE-sizeof(memoryChunkHeader)];
+    char memory[CHUNK_SIZE - sizeof(memoryChunkHeader)];
 
     std::size_t getIndexFromPtr(std::size_t ptr) const{
         auto m = (std::size_t)memory;
@@ -27,19 +25,44 @@ class memoryChunk {
             return ptr - m;
         }
         else{
-            throw "trying to mark a out of bound address";
+            throw "trying to access an out of bound address";
         }
+    }
 
+    u_int16_t sizeOfMarkBits() const {
+        return (CHUNK_SIZE - sizeof(memoryChunkHeader)) / header.size / 8;
+    }
+
+    //start of memory = header + markbits (1 bit per obj)
+    //
+    const char* startOfMemory() const {
+        return memory + sizeOfMarkBits();
+    }
+
+    bool isFull() const {
+        return false;
     }
 
 public:
-    memoryChunk() {
-        header.size = 0;
-        header.next = this;
-        header.mark = false;
-        static_assert(sizeof(*this) == CHUNK_SIZE, "The memory chunk is not of size N");
+    memoryChunk(u_int16_t size) {
+        header.size = size;
+        header.next = nullptr;
     }
 
+    std::size_t getSize() const {
+        return header.size;
+    }
+    //no need to specify the size because it always allocate the same size
+    void* allocate(){
+        if(isFull()){
+            if(header.next == nullptr){
+                header.next = new memoryChunk(header.size);
+                return header.next->allocate();
+            }
+        }
+    }
+
+/*
     void mark(std::size_t ptr, bool markValue) {
         header.mark[getIndexFromPtr(ptr)] = markValue;
 
@@ -51,7 +74,7 @@ public:
     size_t mask() const noexcept{
         return (std::size_t)memory & ~(CHUNK_SIZE-1);
     }
-
+*/
 };
 
 #endif //REALTIMEGARBAGECOLLECTOR_PAGE_H

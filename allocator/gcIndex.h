@@ -15,14 +15,22 @@ const int IndexSize = 1024;
 
 template<class T, unsigned int BitLocation>
 class gcIndex {
-    T* index[IndexSize] = {};
+    T* data[IndexSize] = {};
     u_int16_t getIndexFromPtr(u_int32_t ptr) const noexcept{
         return (ptr >> BitLocation) & (IndexSize - 1);
     }
 
 public:
     T* getData(uint32_t ptr) const{
-        return index[getIndexFromPtr(ptr)];
+        return data[getIndexFromPtr(ptr)];
+    }
+    T* getOrSetData(uint32_t ptr) {
+        auto i = getIndexFromPtr(ptr);
+        T*& a = data[i];
+        if(!a){
+            a = new T;
+        }
+        return a;
     }
 };
 

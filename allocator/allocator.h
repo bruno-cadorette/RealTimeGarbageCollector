@@ -10,10 +10,13 @@
 #include <algorithm>
 #include "memoryChunk.h"
 #include "addressRange.h"
+#include "gcIndex.h"
 
 class allocator {
+    gcTopIndex gcIndex;
     std::vector<memoryChunk*> memory;
     addressRange range;
+
 public:
     void* allocate(std::size_t alloc_size){
         void* ptr;

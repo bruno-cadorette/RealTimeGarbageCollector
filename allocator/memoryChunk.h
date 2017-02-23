@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <bitset>
+#include <array>
 
 //Inspired by Boehm's collector
 class memoryChunk {
@@ -25,10 +26,10 @@ class memoryChunk {
 
     //Someone fix this, number of bit must be equal to the max number of elements
     static const std::size_t memorySize = PAGE_SIZE - sizeof(memoryChunkHeader);
-    char memory[memorySize];
+    std::array<char, memorySize> memory;
 
     std::size_t getIndexFromPtr(std::size_t ptr) const{
-        auto m = (std::size_t)memory;
+        auto m = (std::size_t)memory.data();
         if (ptr > m && ptr  < m + sizeof(memory)){
             return ptr - m;
         }
@@ -48,8 +49,8 @@ public:
         //static_assert(sizeof(memory) / ELEM_SIZE == NUMBER_OF_ELEM, "Bad number of elem");
     }
 
-    void* startOfMemory() noexcept {
-        return memory;
+    char* startOfMemory() noexcept {
+        return memory.data();
     }
     std::size_t getMemorySize() const noexcept {
         return memorySize;

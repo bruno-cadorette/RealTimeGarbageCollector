@@ -5,7 +5,7 @@
 #include "allocator.h"
 
 freeList &allocator::getFreeList(std::size_t i) {
-    return freeLists.at((std::size_t)ceil(log2(i)));
+    return freeLists[(std::size_t)ceil(log2(i))];
 }
 
 void *allocator::allocate(std::size_t alloc_size) {
@@ -15,5 +15,7 @@ void *allocator::allocate(std::size_t alloc_size) {
         lst.addMemory(m);
         chunks.push_back(std::move(m));
     }
-    return lst.allocate();
+    auto ptr = lst.allocate();
+    range.newPrt((std::size_t)ptr);
+    return ptr;
 }

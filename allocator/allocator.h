@@ -15,7 +15,7 @@
 
 class allocator {
     gcTopIndex gcIndex;
-    std::vector<freeList> freeLists;
+    freeList freeLists[32];
     std::vector<memoryChunk> chunks;
     addressRange range;
     freeList& getFreeList(std::size_t i);

@@ -3,47 +3,31 @@
 //
 
 #include "freeList.h"
-#include <cmath>
-#include <algorithm>
-
-std::size_t freeList::getIndex(std::size_t i) {
-    return (std::size_t)ceil(log2(i));
-}
 
 void *freeList::allocate() {
-    auto item = freeMemory.front();
-    auto ptr = item.allocate(objSize);
-    if(ptr.second){
-        freeMemory.pop_front();
-    }
-    return ptr.first;
-}
-
-void freeList::free(void *ptr) {
-    auto it = std::find_if(freeMemory.begin(), freeMemory.end(), [&ptr](const freeListItem& x){
-        return x.canMergePtr(ptr);
-    });
-    if(it == freeMemory.end()){
-        //We can do better than n(log n)
-        freeMemory.push_front(freeListItem((char*)ptr, objSize));
-        freeMemory.sort([](freeListItem a, freeListItem b){
-           return a.startOfAllocable - b.startOfAllocable;
-        });
+    using namespace boost::icl;
+    auto it = freeMemory.begin();
+    char* lower = it->lower();
+    auto inter = memoryInterval::closed(lower, lower + objSize);
+    if(contains(freeMemory, inter)){
+        freeMemory.subtract(inter);
+        return lower;
     }
     else{
-        it->addPtr(objSize);
+        throw -1;
     }
+}
+
+void freeList::free(void * ptr) {
+    addMemory(static_cast<char*>(ptr), objSize);
 }
 
 bool freeList::canAllocate() {
     return !freeMemory.empty();
 }
 
-void freeList::addMemory(void *ptr, std::size_t size) {
-    freeMemory.push_front(freeListItem((char*)ptr, size));
-    freeMemory.sort([](freeListItem a, freeListItem b){
-        return a.startOfAllocable - b.startOfAllocable;
-    });
+void freeList::addMemory(char *ptr, std::size_t size) {
+    freeMemory.add(memoryInterval::closed(ptr, ptr + size));
 }
 
 void freeList::addMemory(memoryChunk &chunk) {

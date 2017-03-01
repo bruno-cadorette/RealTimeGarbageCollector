@@ -15,7 +15,7 @@ class addressRange {
     std::size_t maxPtr = std::numeric_limits<std::size_t>::min();
 
 public:
-    void newPrt(std::size_t ptr);
+    void* newPrt(void* ptr, std::size_t size);
     bool inRange(std::size_t ptr);
 };
 

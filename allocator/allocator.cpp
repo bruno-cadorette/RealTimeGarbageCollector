@@ -9,13 +9,38 @@ freeList &allocator::getFreeList(std::size_t i) {
 }
 
 void *allocator::allocate(std::size_t alloc_size) {
-    auto lst = getFreeList(alloc_size);
+    return isSmallObject(alloc_size) ? allocateSmall(alloc_size) : allocateBig(alloc_size);
+}
+
+bool allocator::isSmallObject(std::size_t size) {
+    return size < 4096;
+}
+
+void *allocator::allocateSmall(std::size_t size) {
+    auto lst = getFreeList(size);
     if(!lst.canAllocate()){
-        memoryChunk m(alloc_size);
+        //We can alloc more memory or do a collection right here
+       /* memoryChunk m(size);
         lst.addMemory(m);
-        chunks.push_back(std::move(m));
+        chunks.push_back(std::move(m));*/
     }
-    auto ptr = lst.allocate();
-    range.newPrt((std::size_t)ptr);
-    return ptr;
+    return range.newPrt(lst.allocate(), size);
+}
+
+void *allocator::allocateBig(std::size_t size) {
+    return nullptr;
+}
+
+bool allocator::isValidPtr(char *ptr) {
+    std::size_t address = static_cast<std::size_t>(ptr);
+    if(range.inRange(address)){
+        auto midIndex = gcIndex.getData(address);
+        if(midIndex){
+            auto chunkHeader = midIndex->getData(address);
+            if(chunkHeader){
+                return chunkHeader->isValid(address);
+            }
+        }
+    }
+    return false;
 }

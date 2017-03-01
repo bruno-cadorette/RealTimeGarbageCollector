@@ -10,50 +10,49 @@
 #include <bitset>
 #include <array>
 
-//Inspired by Boehm's collector
+const std::size_t PAGE_SIZE = 4096;
+template <std::size_t ELEM_SIZE>
 class memoryChunk {
-    //Must find a way to get this information without constant
-    static const int PAGE_SIZE = 4096;
-
-    static const int ELEM_SIZE = 2;
-    static const int NUMBER_OF_ELEM = 16336/(1 + 4 * ELEM_SIZE);
-    struct memoryChunkHeader{
-        u_int16_t size;
-        memoryChunk* next;
-        std::bitset<NUMBER_OF_ELEM> markBits;
-    } header;
-
-
-    //Someone fix this, number of bit must be equal to the max number of elements
-    static const std::size_t memorySize = PAGE_SIZE - sizeof(memoryChunkHeader);
-    std::array<char, memorySize> memory;
-
-    std::size_t getIndexFromPtr(std::size_t ptr) const{
-        auto m = (std::size_t)memory.data();
-        if (ptr > m && ptr  < m + sizeof(memory)){
-            return ptr - m;
-        }
-        else{
-            throw "trying to access an out of bound address";
-        }
-    }
+    char m[PAGE_SIZE];
 
 public:
-    memoryChunk(u_int16_t size) {
-        header.size = size;
-        header.next = nullptr;
+    static constexpr std::size_t numberOfElems(){
+        return PAGE_SIZE / ELEM_SIZE;
     }
-
     memoryChunk(){
-        static_assert(sizeof(memoryChunk) == PAGE_SIZE, "Bad size of memory chunk");
-        //static_assert(sizeof(memory) / ELEM_SIZE == NUMBER_OF_ELEM, "Bad number of elem");
+        static_assert(ELEM_SIZE % 2 == 0 && PAGE_SIZE > ELEM_SIZE, "Bad N value");
     }
+    constexpr char* get(std::size_t i){
+        return m + i;
+    }
+    constexpr char* begin(){
+        return m;
+    }
+    constexpr char* end(){
+        return get(PAGE_SIZE - 1);
+    }
+};
 
-    char* startOfMemory() noexcept {
-        return memory.data();
+struct memoryChunkHeader{
+    virtual char* startOfMemory() = 0;
+    std::size_t getMemorySize(){
+        return PAGE_SIZE;
     }
-    std::size_t getMemorySize() const noexcept {
-        return memorySize;
+    virtual bool isValid(std::size_t) = 0;
+};
+
+//Inspired by Boehm's collector
+template <std::size_t ELEM_SIZE>
+class memoryChunkHeaderImpl : public memoryChunkHeader {
+    memoryChunk<ELEM_SIZE>* memory;
+    std::bitset<memoryChunk<ELEM_SIZE>::numberOfElems()> markBits;
+public:
+    char* startOfMemory(){
+        return memory->get(0);
+    }
+    bool isValid(std::size_t addr){
+        return false; //TODO
+
     }
 };
 

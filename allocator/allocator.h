@@ -16,12 +16,27 @@
 class allocator {
     gcTopIndex gcIndex;
     freeList freeLists[32];
-    std::vector<memoryChunk> chunks;
+
     addressRange range;
     freeList& getFreeList(std::size_t i);
+    bool isSmallObject(std::size_t size);
+    void* allocateSmall(std::size_t size);
+    void* allocateBig(std::size_t size);
+    bool isValidPtr(char* ptr);
 
 public:
     void* allocate(std::size_t alloc_size);
+    template<class T>
+    void* allocate(){
+        auto lst = getFreeList(sizeof(T));
+        if(!lst.canAllocate()){
+            auto m = new memoryChunkHeaderImpl<sizeof(T)>;
+            auto ptr = static_cast<u_int32_t>(m->startOfMemory());
+            gcIndex.getOrSetData(ptr)->getData(ptr) = m;
+            lst.addMemory(*m);
+        }
+        return range.newPrt(lst.allocate(), sizeof(T));
+    }
 };
 
 

@@ -13,7 +13,9 @@ const int MiddleBitsSize = 10;
 const int LowBitsSize = 12;
 const int IndexSize = 1024;
 
-template<class T, unsigned int BitLocation>
+
+
+template<class T, std::size_t BitLocation>
 class gcIndex {
     T* data[IndexSize] = {};
     u_int16_t getIndexFromPtr(u_int32_t ptr) const noexcept{
@@ -21,10 +23,10 @@ class gcIndex {
     }
 
 public:
-    T* getData(uint32_t ptr) const{
+    T*& getData(u_int32_t ptr) const{
         return data[getIndexFromPtr(ptr)];
     }
-    T* getOrSetData(uint32_t ptr) {
+    T* getOrSetData(u_int32_t  ptr) {
         auto i = getIndexFromPtr(ptr);
         T*& a = data[i];
         if(!a){
@@ -34,7 +36,8 @@ public:
     }
 };
 
-using gcBottomIndex = gcIndex<memoryChunk, LowBitsSize>;
+using gcBottomIndex = gcIndex<memoryChunkHeader, LowBitsSize>;
+
 using gcTopIndex = gcIndex<gcBottomIndex, LowBitsSize + MiddleBitsSize>;
 
 

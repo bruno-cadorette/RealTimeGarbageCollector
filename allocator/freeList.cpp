@@ -30,7 +30,7 @@ void freeList::addMemory(char *ptr, std::size_t size) {
     freeMemory.add(memoryInterval::closed(ptr, ptr + size));
 }
 
-void freeList::addMemory(memoryChunk &chunk) {
+void freeList::addMemory(memoryChunkHeader &chunk) {
     addMemory(chunk.startOfMemory(), chunk.getMemorySize());
 }
 

@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <vector>
 #include <set>
+#include <functional>
 #include <boost/icl/interval_set.hpp>
 #include "memoryChunk.h"
 
@@ -24,7 +25,7 @@ public:
     }
     void* allocate();
     void free(void* ptr);
-    void addMemory(memoryChunk& chunk);
+    void addMemory(memoryChunkHeader& chunk);
     bool canAllocate();
 };
 

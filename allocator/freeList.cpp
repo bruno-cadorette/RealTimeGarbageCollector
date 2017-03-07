@@ -14,7 +14,9 @@ void *freeList::allocate() {
         return lower;
     }
     else{
-        throw -1;
+        //this shouldn't happen, it means that the first pointer range is lower than an allocatable object.
+        // I don't know what to do
+        //Delete from the list and free ->
     }
 }
 

@@ -12,11 +12,20 @@
 #include "addressRange.h"
 #include "gcIndex.h"
 #include "freeList.h"
+#include "../dependentArray.h"
+
+
+
+struct eaindexer{
+    static constexpr std::size_t mapIndex(std::size_t x){
+        return x * 4 + 4;
+    }
+};
+using freeListArray = dependentArray<freeListN, freeList, 1023, eaindexer>;
 
 class allocator {
     gcTopIndex gcIndex;
-    freeList freeLists[32];
-
+    freeListArray freeLists;
     addressRange range;
     freeList& getFreeList(std::size_t i);
     bool isSmallObject(std::size_t size);
@@ -24,10 +33,12 @@ class allocator {
     void* allocateBig(std::size_t size);
     bool isValidPtr(char* ptr);
 
+
 public:
+
     void* allocate(std::size_t alloc_size);
     template<class T>
-    void* allocate(){
+    T* allocate(){
         auto lst = getFreeList(sizeof(T));
         if(!lst.canAllocate()){
             auto m = new memoryChunkHeaderImpl<sizeof(T)>;
@@ -35,7 +46,7 @@ public:
             gcIndex.getOrSetData(ptr)->getData(ptr) = m;
             lst.addMemory(*m);
         }
-        return range.newPrt(lst.allocate(), sizeof(T));
+        return static_cast<T*>(range.newPrt(lst.allocate(), sizeof(T)));
     }
 };
 

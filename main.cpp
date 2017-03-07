@@ -5,35 +5,33 @@
 #include "allocator/freeList.h"
 
 using namespace std;
-
-struct Y {
-    virtual void show() const = 0;
-    virtual ~Y() = default;
-};
-
-template <std::size_t N>
-struct X : public Y {
-    void show() const override {
-        std::cout << N << std::endl;
+struct Foo{virtual std::size_t getN() = 0;};
+template<std::size_t N>
+struct FooN : public Foo{std::size_t getN(){return N;}};
+struct indexerId {
+    static constexpr std::size_t mapIndex(std::size_t x){
+        return x * 2;
     }
 };
+void dependentArrayTest(){
+    const std::size_t N = 100;
+    dependentArray<FooN, Foo, N,indexerId> fooArr;
+    assert(fooArr.size() == N);
+    vector<std::size_t> a, b;
+    for (std::size_t i = 0; i < N; ++i) {
+        a.push_back(i*2);
+    }
+    auto arr = fooArr.getArray();
+    std::transform(arr.begin(), arr.end(), b.begin(), [](Foo* f){
+        return f->getN();
+    });
+    assert(std::equal(a.begin(), a.end(), b.begin()));
+}
 
-template<std::size_t... index>
-std::array<Y*, sizeof...(index)> generate_helper(std::index_sequence<index...>) {
-    return {{ new X<1 << index>... }};
-}
-template<int N, typename Indices = std::make_index_sequence<N>>
-std::array<Y*, N> generate_Xs() {
-    return generate_helper(Indices());
-}
 
 
 int main() {
-    auto a = generate_Xs<sizeof(X<6>)>();
-
-    std::for_each(std::begin(a), std::end(a), [](const auto &y) { y->show(); });
-
-    std::for_each(std::begin(a), std::end(a), [](auto &y) { delete y; });
+    dependentArrayTest();
 }
 
 

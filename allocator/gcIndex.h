@@ -23,7 +23,7 @@ class gcIndex {
     }
 
 public:
-    T*& getData(u_int32_t ptr) const{
+    T*& getData(u_int32_t ptr){
         return data[getIndexFromPtr(ptr)];
     }
     T* getOrSetData(u_int32_t  ptr) {
@@ -35,6 +35,7 @@ public:
         return a;
     }
 };
+
 
 using gcBottomIndex = gcIndex<memoryChunkHeader, LowBitsSize>;
 

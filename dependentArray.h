@@ -8,11 +8,13 @@
 #include <array>
 #include <utility>
 
-template <template<unsigned int> class Sub, class Parent, std::size_t N>
-class exponentArray{
+
+
+template <template<std::size_t> class Sub, class Parent, std::size_t N, class F>
+class dependentArray{
     template<std::size_t... index>
     constexpr std::array<Parent*, sizeof...(index)> generate_helper(std::index_sequence<index...>) {
-        return {{static_cast<Parent*>(new Sub<1 << index>)... }};
+        return {{static_cast<Parent*>(new Sub<F::mapIndex(index)>{})... }};
     }
     template<typename Indices = std::make_index_sequence<N>>
     constexpr std::array<Parent*, N> generate_Xs() {
@@ -20,11 +22,16 @@ class exponentArray{
     }
 
     std::array<Parent*, N> array = generate_Xs();
-
-    constexpr std::array<Parent*, N> data(){
+public:
+    constexpr Parent& operator[](std::size_t i){
+        return *array[i];
+    }
+    constexpr std::size_t size(){
+        return array.size();
+    }
+    std::array<Parent*, N>& getArray(){
         return array;
     };
-
 };
 
 

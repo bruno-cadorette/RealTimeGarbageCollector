@@ -5,7 +5,7 @@
 #include "allocator.h"
 
 freeList &allocator::getFreeList(std::size_t i) {
-    return freeLists[(std::size_t)ceil(log2(i))];
+    return freeLists[i / 4 - 4];
 }
 
 void *allocator::allocate(std::size_t alloc_size) {
@@ -32,13 +32,13 @@ void *allocator::allocateBig(std::size_t size) {
 }
 
 bool allocator::isValidPtr(char *ptr) {
-    std::size_t address = static_cast<std::size_t>(ptr);
+    std::size_t address = reinterpret_cast<std::size_t>(ptr);
     if(range.inRange(address)){
         auto midIndex = gcIndex.getData(address);
         if(midIndex){
             auto chunkHeader = midIndex->getData(address);
             if(chunkHeader){
-                return chunkHeader->isValid(address);
+                return chunkHeader->isValid(ptr);
             }
         }
     }

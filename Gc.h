@@ -11,9 +11,6 @@ class Gc;
 template <class T>
 using RootGc = Gc<T, true>;
 
-template <class T, class... Args>
-RootGc<T> MakeRootPtr(Args&&... args);
-
 
 template<class T, bool IsRoot=false>
 class Gc {
@@ -30,27 +27,24 @@ public:
 
 private:
     T* get() const { return static_cast<T*>(garbageCollector::get()[ptrIndex]); }
-    bool root() const { return IsRoot; }
 };
 
 
 
 template <class T, bool IsRoot>
 Gc<T, IsRoot>::Gc(T* ptr) {
-    //TODO only add to roots set here if root
     ptrIndex = garbageCollector::get().allocate(ptr);
+
+    if (IsRoot) {
+        garbageCollector::get().addRoot(ptrIndex);
+    }
 }
 
 template <class T, bool IsRoot>
 Gc<T, IsRoot>::~Gc() {
-    if (root()) { // non-roots are handled by the GC
-        garbageCollector::get().removeReference(ptrIndex);
+    if (IsRoot) { // non-roots are handled by the GC
+        garbageCollector::get().removeRoot(ptrIndex);
     }
-}
-
-template <class T, class... Args>
-RootGc<T> MakeRootPtr(Args&&... args) {
-    return {new T{std::forward<Args>(args)...}};
 }
 
 #endif //REALTIMEGARBAGECOLLECTOR_GCPTR_H

@@ -5,12 +5,16 @@
 #include "garbageCollector.h"
 
 #include <stack>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <cassert>
 
 void garbageCollector::collect() {
     std::stack<heapItem*> toMark;
-    std::for_each(roots.begin(), roots.end(), [&](std::size_t i){
-        toMark.push(heap[i]);
-    });
+    for (const auto& root : roots) {
+        toMark.push(heap[root.first]);
+    }
     while (!toMark.empty()){
         auto hItem = toMark.top();
         toMark.pop();
@@ -45,5 +49,28 @@ garbageCollector& garbageCollector::get() {
     return gc;
 }
 
+void garbageCollector::addRoot(encodedPtr item) {
+    const auto ptr = item.decode();
+    ++roots[ptr];
+}
+void garbageCollector::removeRoot(encodedPtr item) {
+    const auto ptr = item.decode();
+    auto it = roots.find(ptr);
+    assert(it != std::end(roots));
+    assert(it->second > 0);
 
+    --it->second;
 
+    if (it->second == 0) {
+        roots.erase(it);
+    }
+}
+
+void garbageCollector::_showState() {
+    std::cout << "Roots: " << std::endl;
+    for (const auto& root : roots) {
+        std::cout << "  " << root.first;
+        std::cout << " (" << root.second << ")";
+        std::cout << std::endl;
+    }
+}

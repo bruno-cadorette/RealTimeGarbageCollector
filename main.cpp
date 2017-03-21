@@ -16,10 +16,12 @@ struct A {
 };
 
 int main() {
+    garbageCollector::get()._showState();
     cout << "Creating 'a'" << endl;
-    auto a = MakeRootPtr<A>(5);
+    RootGc<A> a = new A{5};
+    garbageCollector::get()._showState();
 
     cout << "Creating 'b'" << endl;
-    auto b = MakeRootPtr<A>(7);
-
+    RootGc<A> b = new A{7};
+    garbageCollector::get()._showState();
 }

@@ -25,13 +25,19 @@ public:
     template <bool OtherIsRoot>
     Gc(const Gc<T, OtherIsRoot> &other);
 
-    /* template <bool OtherIsRoot> */
-    /* Gc& operator=(const Gc<T, OtherIsRoot> &other); */
+
+    Gc& operator=(const Gc &other);
+
+    template <bool OtherIsRoot>
+    Gc& operator=(const Gc<T, OtherIsRoot> &other);
 
     T& operator*() { return *get(); }
     const T& operator*() const { return *get(); }
     T* operator->() { return get(); }
     const T* operator-> () const { return get(); }
+
+
+    encodedPtr _rawIndex() const { return ptrIndex; }
 
 private:
     T* get() const { return static_cast<T*>(garbageCollector::get()[ptrIndex]); }
@@ -67,7 +73,7 @@ Gc<T, IsRoot>::Gc(const Gc<T, IsRoot> &other)
 template <class T, bool IsRoot>
 template <bool OtherIsRoot>
 Gc<T, IsRoot>::Gc(const Gc<T, OtherIsRoot> &other)
-    : ptrIndex{other.ptrIndex} {
+    : ptrIndex{other._rawIndex()} {
     init();
 }
 
@@ -84,10 +90,20 @@ void Gc<T, IsRoot>::swap(Gc<T, IsRoot> &other) {
     swap(ptrIndex, other.ptrIndex);
 }
 
-/* template <class T, bool IsRoot, bool OtherIsRoot> */
-/* Gc<T, IsRoot>& Gc<T, IsRoot>::operator=(const Gc<T, OtherIsRoot> &other) { */
-/*     Gc<T, IsRoot> me(other); */
-/*     swap(me); */
-/* } */
+
+template <class T, bool IsRoot>
+Gc<T, IsRoot>& Gc<T, IsRoot>::operator=(const Gc<T, IsRoot> &other) {
+    Gc<T, IsRoot> me(other);
+    swap(me);
+    return *this;
+}
+
+template <class T, bool IsRoot>
+template <bool OtherIsRoot>
+Gc<T, IsRoot>& Gc<T, IsRoot>::operator=(const Gc<T, OtherIsRoot> &other) {
+    Gc<T, IsRoot> me(other);
+    swap(me);
+    return *this;
+}
 
 #endif //REALTIMEGARBAGECOLLECTOR_GCPTR_H

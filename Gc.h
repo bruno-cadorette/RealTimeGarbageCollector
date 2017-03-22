@@ -20,6 +20,14 @@ public:
     Gc(T* ptr = nullptr);
     ~Gc();
 
+    Gc(const Gc& other);
+
+    template <bool OtherIsRoot>
+    Gc(const Gc<T, OtherIsRoot> &other);
+
+    /* template <bool OtherIsRoot> */
+    /* Gc& operator=(const Gc<T, OtherIsRoot> &other); */
+
     T& operator*() { return *get(); }
     const T& operator*() const { return *get(); }
     T* operator->() { return get(); }
@@ -27,6 +35,9 @@ public:
 
 private:
     T* get() const { return static_cast<T*>(garbageCollector::get()[ptrIndex]); }
+
+    void swap(Gc &other);
+    void init();
 };
 
 
@@ -46,5 +57,37 @@ Gc<T, IsRoot>::~Gc() {
         garbageCollector::get().removeRoot(ptrIndex);
     }
 }
+
+template <class T, bool IsRoot>
+Gc<T, IsRoot>::Gc(const Gc<T, IsRoot> &other)
+    : ptrIndex(other.ptrIndex) {
+    init();
+}
+
+template <class T, bool IsRoot>
+template <bool OtherIsRoot>
+Gc<T, IsRoot>::Gc(const Gc<T, OtherIsRoot> &other)
+    : ptrIndex{other.ptrIndex} {
+    init();
+}
+
+template <class T, bool IsRoot>
+void Gc<T, IsRoot>::init() {
+    if (IsRoot) {
+        garbageCollector::get().addRoot(ptrIndex);
+    }
+}
+
+template <class T, bool IsRoot>
+void Gc<T, IsRoot>::swap(Gc<T, IsRoot> &other) {
+    using std::swap;
+    swap(ptrIndex, other.ptrIndex);
+}
+
+/* template <class T, bool IsRoot, bool OtherIsRoot> */
+/* Gc<T, IsRoot>& Gc<T, IsRoot>::operator=(const Gc<T, OtherIsRoot> &other) { */
+/*     Gc<T, IsRoot> me(other); */
+/*     swap(me); */
+/* } */
 
 #endif //REALTIMEGARBAGECOLLECTOR_GCPTR_H

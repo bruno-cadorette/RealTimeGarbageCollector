@@ -73,4 +73,5 @@ void garbageCollector::_showState() {
         std::cout << " (" << root.second << ")";
         std::cout << std::endl;
     }
+    if (roots.empty()) std::cout << "  (empty)" << std::endl;
 }

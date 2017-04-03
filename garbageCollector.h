@@ -18,14 +18,17 @@ class garbageCollector {
     bool canAllocate(size_t objSize);
 
 public:
-    template<class T>
-    encodedPtr allocate(T *item) {
-        auto size = sizeof(item);
+    template<class T, class... Args>
+    encodedPtr allocate(Args&&... args) {
+        auto size = sizeof(T);
         if (!canAllocate(size))
         {
             collect();
             if (!canAllocate(size)) return 0; //TODO error handling
         }
+
+        // TODO allocate in our custom heap
+        auto item = new T{std::forward<Args>(args)...};
 
         currentHeapSize += size;
         auto hItem = new heapItemImpl<T>(item);

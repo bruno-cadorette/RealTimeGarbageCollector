@@ -11,20 +11,23 @@ class Gc;
 template <class T>
 using RootGc = Gc<T, true>;
 
+template <class T, class... Args>
+Gc<T, false> MakeGc(Args&&... args);
+template <class T, class... Args>
+RootGc<T> MakeRootGc(Args&&... args);
 
-template<class T, bool IsRoot=false>
+
+template <class T, bool IsRoot=false>
 class Gc {
     encodedPtr ptrIndex;
 
 public:
-    Gc(T* ptr = nullptr);
-    ~Gc();
-
     Gc(const Gc& other);
 
     template <bool OtherIsRoot>
     Gc(const Gc<T, OtherIsRoot> &other);
 
+    ~Gc();
 
     Gc& operator=(const Gc &other);
 
@@ -40,21 +43,34 @@ public:
     encodedPtr _rawIndex() const { return ptrIndex; }
 
 private:
+    Gc(encodedPtr ptr);
+
+    template <class U, class... Args>
+    friend Gc<U> MakeGc(Args&&...);
+
+    template <class U, class... Args>
+    friend RootGc<U> MakeRootGc(Args&&...);
+
     T* get() const { return static_cast<T*>(garbageCollector::get()[ptrIndex]); }
 
     void swap(Gc &other);
     void init();
 };
 
-
+template <class T, class... Args>
+Gc<T> MakeGc(Args&&... args) {
+    auto ptrIndex = garbageCollector::get().allocate<T>(std::forward<Args>(args)...);
+    return Gc<T>{ptrIndex};
+}
+template <class T, class... Args>
+RootGc<T> MakeRootGc(Args&&... args) {
+    auto ptrIndex = garbageCollector::get().allocate<T>(std::forward<Args>(args)...);
+    return RootGc<T>{ptrIndex};
+}
 
 template <class T, bool IsRoot>
-Gc<T, IsRoot>::Gc(T* ptr) {
-    ptrIndex = garbageCollector::get().allocate(ptr);
-
-    if (IsRoot) {
-        garbageCollector::get().addRoot(ptrIndex);
-    }
+Gc<T, IsRoot>::Gc(encodedPtr ptr) : ptrIndex{ptr} {
+    init();
 }
 
 template <class T, bool IsRoot>

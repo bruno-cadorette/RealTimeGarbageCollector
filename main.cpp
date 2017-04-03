@@ -13,18 +13,18 @@ struct A {
     Gc<B> b;
 
     A(const Gc<B>& b) : foo {0}, b{b} {}
-    A(int foo) : foo{foo}, b{new B{foo + 1}} {}
+    A(int foo) : foo{foo}, b{MakeGc<B>(foo + 1)} {}
 };
 
 int main() {
     {
         garbageCollector::get()._showState();
         cout << "Creating 'a'" << endl;
-        RootGc<A> a = new A{5};
+        auto a = MakeRootGc<A>(5);
         garbageCollector::get()._showState();
 
         cout << "Creating 'b'" << endl;
-        RootGc<A> b = new A{7};
+        auto b = MakeRootGc<A>(7);
         garbageCollector::get()._showState();
 
         cout << "Creating 'c' equal to b" << endl;
@@ -40,7 +40,7 @@ int main() {
         garbageCollector::get()._showState();
 
         cout << "b.b = new B" << endl;
-        b->b = new B{9};
+        b->b = MakeGc<B>(9);
         garbageCollector::get()._showState();
 
         cout << "d = b->b" << endl;

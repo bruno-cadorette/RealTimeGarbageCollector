@@ -9,15 +9,19 @@ using CollectDuration = StatsClock::duration;
 
 class GcStats {
 public:
-    using CollectDurations = std::vector<CollectDuration>;
-
     GcStats();
     void recordCollectDuration(CollectDuration duration) noexcept;
 
-    const CollectDurations& getCollectDurations() const { return collections; }
+    std::size_t getCollectionsCount() const { return collectionsCount; }
+    CollectDuration getAverageDuration() const { return timeSpent / collectionsCount; }
+    CollectDuration getMaxDuration() const { return maxTime; }
+    std::size_t getBustedTimeConstraints() const { return bustedTimeConstraints; }
 
 private:
-    CollectDurations collections;
+    CollectDuration timeSpent;
+    CollectDuration maxTime;
+    std::size_t collectionsCount;
+    std::size_t bustedTimeConstraints;
 };
 
 

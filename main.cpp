@@ -56,10 +56,23 @@ int main() {
     garbageCollector::get()._showState();
     garbageCollector::get().collect();
 
-    cout << "Collection times: " << endl;
+    cout << "Collection times stats: " << endl;
     const auto stats = garbageCollector::get().getStats();
-    for (auto& duration : stats.getCollectDurations()) {
-        auto ns = chrono::duration_cast<chrono::nanoseconds>(duration).count();
-        cout << ns << "ns" << endl;
-    }
+    using chrono::duration_cast;
+    using ns = chrono::nanoseconds;
+    cout << " Total collections: "
+         << stats.getCollectionsCount()
+         << endl
+
+         << "      Average time: "
+         << duration_cast<ns>(stats.getAverageDuration()).count() << "ns"
+         << endl
+
+         << "      Maximum time: "
+         << duration_cast<ns>(stats.getMaxDuration()).count() << "ns"
+         << endl
+
+         << "Busted constraints: "
+         << stats.getBustedTimeConstraints()
+         << endl;
 }

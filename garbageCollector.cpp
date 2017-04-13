@@ -11,6 +11,8 @@
 #include <cassert>
 
 void garbageCollector::collect() {
+    GcCollectMonitor collectStats{stats};
+
     std::stack<heapItem*> toMark;
     for (const auto& root : roots) {
         toMark.push(heap[root.first]);

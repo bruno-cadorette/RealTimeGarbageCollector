@@ -54,4 +54,12 @@ int main() {
         cout << "Dtors." << endl;
     }
     garbageCollector::get()._showState();
+    garbageCollector::get().collect();
+
+    cout << "Collection times: " << endl;
+    const auto stats = garbageCollector::get().getStats();
+    for (auto& duration : stats.getCollectDurations()) {
+        auto ns = chrono::duration_cast<chrono::nanoseconds>(duration).count();
+        cout << ns << "ns" << endl;
+    }
 }

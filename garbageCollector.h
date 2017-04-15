@@ -51,6 +51,8 @@ public:
 
 
     const GcStats& getStats() const { return stats; }
+    std::size_t getMemoryOverhead() const;
+    std::size_t getManagedMemorySize() const { return currentHeapSize; }
     // Shows information about the GC state (for debug purposes)
     void _showState();
 };

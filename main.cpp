@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "Gc.h"
 
 using namespace std;
@@ -56,23 +57,34 @@ int main() {
     garbageCollector::get()._showState();
     garbageCollector::get().collect();
 
-    cout << "Collection times stats: " << endl;
+    cout << "Collection stats: " << endl;
     const auto stats = garbageCollector::get().getStats();
+    const auto time = stats.getTimeStats();
+    const auto memory = stats.getMemoryStats();
     using chrono::duration_cast;
     using ns = chrono::nanoseconds;
-    cout << " Total collections: "
-         << stats.getCollectionsCount()
+    cout << std::fixed << std::setprecision(2);
+    cout << "      Total collections: "
+         << time.count()
          << endl
 
-         << "      Average time: "
-         << duration_cast<ns>(stats.getAverageDuration()).count() << "ns"
+         << "           Average time: "
+         << duration_cast<ns>(time.avg()).count() << "ns"
          << endl
 
-         << "      Maximum time: "
-         << duration_cast<ns>(stats.getMaxDuration()).count() << "ns"
+         << "           Maximum time: "
+         << duration_cast<ns>(time.max()).count() << "ns"
          << endl
 
-         << "Busted constraints: "
+         << "     Busted constraints: "
          << stats.getBustedTimeConstraints()
+         << endl
+
+         << "Average memory overhead: "
+         << memory.avg() * 100.f << "%"
+         << endl
+
+         << "Minimum memory overhead: "
+         << memory.min() * 100.f << "%"
          << endl;
 }

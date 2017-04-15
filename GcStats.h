@@ -10,9 +10,8 @@ using CollectDuration = StatsClock::duration;
 
 class garbageCollector;
 
-// Individual statistic
 template <class T>
-class GcStat {
+class Metric {
 public:
     void update(const T& stat) {
         max_ = std::max(stat, max_);
@@ -39,13 +38,13 @@ public:
     void recordCollectDuration(CollectDuration duration) noexcept;
     void recordMemoryUsage(float usage) noexcept;
 
-    GcStat<CollectDuration> getTimeStats() const { return time; }
-    GcStat<float> getMemoryStats() const { return memory; }
+    Metric<CollectDuration> getTimeStats() const { return time; }
+    Metric<float> getMemoryStats() const { return memory; }
     std::size_t getBustedTimeConstraints() const { return bustedTimeConstraints; }
 
 private:
-    GcStat<CollectDuration> time;
-    GcStat<float> memory;
+    Metric<CollectDuration> time;
+    Metric<float> memory;
     std::size_t bustedTimeConstraints;
 };
 

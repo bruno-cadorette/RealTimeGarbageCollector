@@ -29,4 +29,13 @@
 *.app
 
 .idea/
+
+# CMake
 cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# Application
+RealTimeGarbageCollector

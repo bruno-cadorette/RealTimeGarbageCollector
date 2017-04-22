@@ -3,35 +3,34 @@
 #include <memory>
 #include <algorithm>
 #include "allocator/freeList.h"
+#include "allocator/gcAllocator.h"
 
 using namespace std;
-struct Foo{virtual std::size_t getN() = 0;};
-template<std::size_t N>
-struct FooN : public Foo{std::size_t getN(){return N;}};
-struct indexerId {
-    static constexpr std::size_t mapIndex(std::size_t x){
-        return x * 2;
-    }
-};
-void dependentArrayTest(){
-    const std::size_t N = 100;
-    dependentArray<FooN, Foo, N,indexerId> fooArr;
-    assert(fooArr.size() == N);
-    vector<std::size_t> a, b;
-    for (std::size_t i = 0; i < N; ++i) {
-        a.push_back(i*2);
-    }
-    auto arr = fooArr.getArray();
-    std::transform(arr.begin(), arr.end(), b.begin(), [](Foo* f){
-        return f->getN();
-    });
-    assert(std::equal(a.begin(), a.end(), b.begin()));
+
+gcAllocator alloc;
+
+void treetest(){
+    gcTopIndex a;
+    gcBottomIndex b;
+    const size_t ptr = 4096;
+    cout << a.getIndexFromPtr(ptr) << endl;
+    cout << b.getIndexFromPtr(ptr) << endl;
 }
 
+void allocatorTest(){
+    for (int i = 0; i < 100000; ++i) {
+        auto a = alloc.allocate<int>();
+        *a = 9;
+        assert(alloc.isValidPtr(reinterpret_cast<char*>(a)));
+    }
 
+    assert(!alloc.isValidPtr(reinterpret_cast<char*>(0x7286424)));
+
+}
 
 int main() {
-    dependentArrayTest();
+    allocatorTest();
+    treetest();
 }
 
 

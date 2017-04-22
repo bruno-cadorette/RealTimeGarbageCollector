@@ -5,9 +5,7 @@
 #ifndef REALTIMEGARBAGECOLLECTOR_GARBAGECOLLECTOR_H
 #define REALTIMEGARBAGECOLLECTOR_GARBAGECOLLECTOR_H
 
-
-#include <vector>
-#include <unordered_set>
+#include <map>
 #include <algorithm>
 #include "heapItem.h"
 #include "encoding.h"
@@ -15,46 +13,42 @@ class garbageCollector {
 
     ptrSize currentHeapSize = 0;
     std::vector<heapItem*> heap;
-    std::vector<std::size_t> roots;
+    std::map<std::size_t, std::size_t> roots;
 
     bool canAllocate(size_t objSize);
 
 public:
-    template<class T>
-    encodedPtr allocate(T *item){
-        auto size = sizeof(item);
-        if (canAllocate(size))
-        {
-            currentHeapSize += size;
-            auto hItem = new heapItemImpl<T>(item);
-            heap.push_back(hItem);
-            auto index = heap.size() - 1;
-            roots.push_back(index);
-            return encodedPtr{index};
-        }
-        else
+    template<class T, class... Args>
+    encodedPtr allocate(Args&&... args) {
+        auto size = sizeof(T);
+        if (!canAllocate(size))
         {
             collect();
-            if(!canAllocate(size))
-            {
-                return 0;
-            }
-            allocate(item);
+            if (!canAllocate(size)) return 0; //TODO error handling
         }
+
+        // TODO allocate in our custom heap
+        auto item = new T{std::forward<Args>(args)...};
+
+        currentHeapSize += size;
+        auto hItem = new heapItemImpl<T>(item);
+        heap.push_back(hItem);
+        auto index = heap.size() - 1;
+        return {index};
     }
     void* operator[](const encodedPtr& ptr) {
         return heap[ptr.decode()]->getItem();
     }
-    void removeReference(encodedPtr item) {
-        auto ptr = item.decode();
-        roots.erase(std::remove_if(roots.begin(), roots.end(), [&](std::uint64_t x){
-            return ptr == x;
-        }), roots.end());
-    }
+    void addRoot(encodedPtr item);
+    void removeRoot(encodedPtr item);
 
     void collect();
 
     static garbageCollector &get();
+
+
+    // Shows information about the GC state (for debug purposes)
+    void _showState();
 };
 
 

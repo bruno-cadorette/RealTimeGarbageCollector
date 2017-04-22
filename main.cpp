@@ -1,36 +1,57 @@
 #include <iostream>
-#include <new>
-#include <memory>
-#include <algorithm>
-#include "allocator/freeList.h"
-#include "allocator/gcAllocator.h"
+#include "Gc.h"
 
 using namespace std;
 
-gcAllocator alloc;
+struct B {
+    int bar;
 
-void treetest(){
-    gcTopIndex a;
-    gcBottomIndex b;
-    const size_t ptr = 4096;
-    cout << a.getIndexFromPtr(ptr) << endl;
-    cout << b.getIndexFromPtr(ptr) << endl;
-}
+    B(int bar) : bar{bar} {}
+};
+struct A {
+    int foo;
+    Gc<B> b;
 
-void allocatorTest(){
-    for (int i = 0; i < 100000; ++i) {
-        auto a = alloc.allocate<int>();
-        *a = 9;
-        assert(alloc.isValidPtr(reinterpret_cast<char*>(a)));
-    }
-
-    assert(!alloc.isValidPtr(reinterpret_cast<char*>(0x7286424)));
-
-}
+    A(const Gc<B>& b) : foo {0}, b{b} {}
+    A(int foo) : foo{foo}, b{MakeGc<B>(foo + 1)} {}
+};
 
 int main() {
-    allocatorTest();
-    treetest();
+    {
+        garbageCollector::get()._showState();
+        cout << "Creating 'a'" << endl;
+        auto a = MakeRootGc<A>(5);
+        garbageCollector::get()._showState();
+
+        cout << "Creating 'b'" << endl;
+        auto b = MakeRootGc<A>(7);
+        garbageCollector::get()._showState();
+
+        cout << "Creating 'c' equal to b" << endl;
+        RootGc<A> c = b;
+        garbageCollector::get()._showState();
+
+        cout << "Creating 'd' equal to b->b" << endl;
+        RootGc<B> d{b->b};
+        garbageCollector::get()._showState();
+
+        cout << "b = a" << endl;
+        b = a;
+        garbageCollector::get()._showState();
+
+        cout << "b.b = new B" << endl;
+        b->b = MakeGc<B>(9);
+        garbageCollector::get()._showState();
+
+        cout << "d = b->b" << endl;
+        d = b->b;
+        garbageCollector::get()._showState();
+
+        cout << "b->b = d" << endl;
+        b->b = d;
+        garbageCollector::get()._showState();
+
+        cout << "Dtors." << endl;
+    }
+    garbageCollector::get()._showState();
 }
-
-

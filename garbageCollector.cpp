@@ -5,12 +5,18 @@
 #include "garbageCollector.h"
 
 #include <stack>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <cassert>
 
 void garbageCollector::collect() {
+    GcCollectMonitor collectStats{*this, stats};
+
     std::stack<heapItem*> toMark;
-    std::for_each(roots.begin(), roots.end(), [&](std::size_t i){
-        toMark.push(heap[i]);
-    });
+    for (const auto& root : roots) {
+        toMark.push(heap[root.first]);
+    }
     while (!toMark.empty()){
         auto hItem = toMark.top();
         toMark.pop();
@@ -37,10 +43,51 @@ void garbageCollector::collect() {
 }
 
 bool garbageCollector::canAllocate(size_t objSize) {
-    return currentHeapSize + objSize < encoding::MAX_HEAP_SIZE;
+    return currentHeapSize + objSize < MAX_HEAP_SIZE;
 }
 
 garbageCollector& garbageCollector::get() {
     static garbageCollector gc;
     return gc;
+}
+
+void garbageCollector::addRoot(encodedPtr item) {
+    const auto ptr = item.decode();
+    ++roots[ptr];
+}
+void garbageCollector::removeRoot(encodedPtr item) {
+    const auto ptr = item.decode();
+    auto it = roots.find(ptr);
+    assert(it != std::end(roots));
+    assert(it->second > 0);
+
+    --it->second;
+
+    if (it->second == 0) {
+        roots.erase(it);
+    }
+}
+
+void garbageCollector::_showState() {
+    std::cout << "Roots: " << std::endl;
+    for (const auto& root : roots) {
+        std::cout << "  " << root.first;
+        std::cout << " (" << root.second << ")";
+        std::cout << std::endl;
+    }
+    if (roots.empty()) std::cout << "  (empty)" << std::endl;
+}
+
+std::size_t garbageCollector::getMemoryOverhead() const {
+    const auto our_size = sizeof(garbageCollector);
+
+    // check size of an int heap item, but it's the same for any T.
+    const auto heap_item_size = sizeof(heapItemImpl<int>);
+
+    // root: encoded ptr + counter
+    const auto root_size = sizeof(encodedPtr) + sizeof(size_t);
+
+    return our_size +
+           heap_item_size * heap.size() +
+           root_size * roots.size();
 }

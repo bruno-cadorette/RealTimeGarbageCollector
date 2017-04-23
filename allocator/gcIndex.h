@@ -17,8 +17,11 @@ const int IndexSize = 1024;
 
 template<class T, std::size_t BitLocation>
 class gcIndex {
-    T* data[IndexSize] = {};
+    std::array<T*, IndexSize> data = {};
 public:
+    std::array<T*, IndexSize> rawData(){
+        return data;
+    }
     std::size_t getIndexFromPtr(std::size_t ptr) const noexcept{
         return (ptr >> BitLocation) & (IndexSize - 1);
     }

@@ -19,8 +19,7 @@ RootGc<T> MakeRootGc(Args&&... args);
 
 template <class T, bool IsRoot=false>
 class Gc {
-    encodedPtr ptrIndex;
-
+    T* ptr;
 public:
     Gc(const Gc& other);
 
@@ -40,10 +39,10 @@ public:
     const T* operator-> () const { return get(); }
 
 
-    encodedPtr _rawIndex() const { return ptrIndex; }
+    T* _rawIndex() const { return ptr; }
 
 private:
-    Gc(encodedPtr ptr);
+    Gc(T* ptr);
 
     template <class U, class... Args>
     friend Gc<U> MakeGc(Args&&...);
@@ -51,7 +50,7 @@ private:
     template <class U, class... Args>
     friend RootGc<U> MakeRootGc(Args&&...);
 
-    T* get() const { return static_cast<T*>(garbageCollector::get()[ptrIndex]); }
+    T* get() const { return ptr; }
 
     void swap(Gc &other);
     void init();
@@ -69,41 +68,41 @@ RootGc<T> MakeRootGc(Args&&... args) {
 }
 
 template <class T, bool IsRoot>
-Gc<T, IsRoot>::Gc(encodedPtr ptr) : ptrIndex{ptr} {
+Gc<T, IsRoot>::Gc(T* ptr) : ptr{ptr} {
     init();
 }
 
 template <class T, bool IsRoot>
 Gc<T, IsRoot>::~Gc() {
     if (IsRoot) { // non-roots are handled by the GC
-        garbageCollector::get().removeRoot(ptrIndex);
+        garbageCollector::get().removeRoot(reinterpret_cast<char*>(ptr));
     }
 }
 
 template <class T, bool IsRoot>
 Gc<T, IsRoot>::Gc(const Gc<T, IsRoot> &other)
-    : ptrIndex(other.ptrIndex) {
+    : ptr(other.ptr) {
     init();
 }
 
 template <class T, bool IsRoot>
 template <bool OtherIsRoot>
 Gc<T, IsRoot>::Gc(const Gc<T, OtherIsRoot> &other)
-    : ptrIndex{other._rawIndex()} {
+    : ptr{other._rawIndex()} {
     init();
 }
 
 template <class T, bool IsRoot>
 void Gc<T, IsRoot>::init() {
     if (IsRoot) {
-        garbageCollector::get().addRoot(ptrIndex);
+        garbageCollector::get().addRoot(reinterpret_cast<char*>(ptr));
     }
 }
 
 template <class T, bool IsRoot>
 void Gc<T, IsRoot>::swap(Gc<T, IsRoot> &other) {
     using std::swap;
-    swap(ptrIndex, other.ptrIndex);
+    swap(ptr, other.ptr);
 }
 
 

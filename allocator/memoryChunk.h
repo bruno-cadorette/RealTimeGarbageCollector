@@ -42,6 +42,10 @@ struct memoryChunkHeader{
     virtual void mark(char* ptr) = 0;
     virtual std::size_t getPtrSize() = 0;
     virtual bool isValid(char*) = 0;
+    virtual bool isMarked(char* ptr) = 0;
+    virtual bool canBeDeleted() = 0;
+    virtual void unMarks() = 0;
+    virtual ~memoryChunkHeader(){};
 };
 
 //Inspired by Boehm's collector
@@ -51,11 +55,22 @@ class memoryChunkHeaderImpl : public memoryChunkHeader {
     memoryChunk<ELEM_SIZE>* memory;
     std::bitset<objectSize::numberOfElems(ELEM_SIZE)> markBits;
 public:
+
+    bool canBeDeleted(){
+        return markBits.none();
+    }
+
+    void unMarks(){
+        markBits.reset();
+    }
     char* startOfMemory(){
         return memory->begin();
     }
     void mark(char* ptr){
         markBits.set(ptr - startOfMemory());
+    }
+    bool isMarked(char* ptr){
+        return markBits[ptr - startOfMemory()];
     }
     bool isValid(char* ptr){
         return memory->ptrPointToValidObject(ptr);

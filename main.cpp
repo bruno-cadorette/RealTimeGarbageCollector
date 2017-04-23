@@ -54,6 +54,7 @@ int main() {
 
         cout << "Dtors." << endl;
     }
+    cout << "Variables are all deads" << endl;
     garbageCollector::get()._showState();
     garbageCollector::get().collect();
 

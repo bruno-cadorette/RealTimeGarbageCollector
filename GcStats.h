@@ -22,7 +22,15 @@ public:
 
     const T& min() const { return min_; }
     const T& max() const { return max_; }
-    T avg() const { return total / count(); }
+    T avg() const {
+        if(count() != 0) {
+            return total / count();
+        }
+        else{
+            return {};
+        }
+
+    }
     std::size_t count() const { return count_; }
 
 private:

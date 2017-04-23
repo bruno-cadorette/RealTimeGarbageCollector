@@ -19,10 +19,6 @@ bool gcAllocator::isSmallObject(std::size_t size) {
 void *gcAllocator::allocateSmall(std::size_t size) {
     auto lst = getFreeList(size);
     if(!lst.canAllocate()){
-        //We can alloc more memory or do a collection right here
-       /* memoryChunk m(size);
-        lst.addMemory(m);
-        chunks.push_back(std::move(m));*/
     }
     return range.newPrt(lst.allocate(), size);
 }
@@ -43,6 +39,26 @@ bool gcAllocator::isValidPtr(char *ptr) {
         }
     }
     return false;
+}
+
+std::vector<char*> gcAllocator::innersPtr(char* ptr) {
+    std::vector<char*> ptrs;
+    std::size_t address = reinterpret_cast<std::size_t>(ptr);
+    if(range.inRange(address)){
+        auto midIndex = gcIndex.getData(address);
+        if(midIndex){
+            auto chunkHeader = midIndex->getData(address);
+            if(chunkHeader && chunkHeader->isValid(ptr)){
+                auto size = chunkHeader->getPtrSize();
+                for (int i = 1; i < size - sizeof(size_t); ++i) {
+                    if(isValidPtr(ptr + i)){
+                        ptrs.push_back(ptr + i);
+                    }
+                }
+            }
+        }
+    }
+    return ptrs;
 }
 
 gcAllocator::gcAllocator() {

@@ -10,40 +10,28 @@
 #include "heapItem.h"
 #include "encoding.h"
 #include "GcStats.h"
+#include "allocator/gcAllocator.h"
 
 class garbageCollector {
 
     ptrSize currentHeapSize = 0;
     std::vector<heapItem*> heap;
-    std::map<std::size_t, std::size_t> roots;
+    std::map<char*, std::size_t> roots;
     GcStats stats;
-
+    gcAllocator allocator;
     bool canAllocate(size_t objSize);
 
 public:
     template<class T, class... Args>
-    encodedPtr allocate(Args&&... args) {
-        auto size = sizeof(T);
-        if (!canAllocate(size))
-        {
-            collect();
-            if (!canAllocate(size)) return 0; //TODO error handling
-        }
-
-        // TODO allocate in our custom heap
-        auto item = new T{std::forward<Args>(args)...};
-
-        currentHeapSize += size;
-        auto hItem = new heapItemImpl<T>(item);
-        heap.push_back(hItem);
-        auto index = heap.size() - 1;
-        return {index};
+    T* allocate(Args&&... args) {
+        auto ptr = allocator.allocate<T>();
+        return new (ptr) T{std::forward<Args>(args)...};
     }
     void* operator[](const encodedPtr& ptr) {
         return heap[ptr.decode()]->getItem();
     }
-    void addRoot(encodedPtr item);
-    void removeRoot(encodedPtr item);
+    void addRoot(char* item);
+    void removeRoot(char* item);
 
     void collect();
 

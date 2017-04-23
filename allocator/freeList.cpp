@@ -4,20 +4,19 @@
 
 #include "freeList.h"
 
+
 void *freeList::allocate() {
     using namespace boost::icl;
-    auto it = freeMemory.begin();
-    char* lower = it->lower();
-    auto inter = memoryInterval::closed(lower, lower + objSize);
-    if(contains(freeMemory, inter)){
-        freeMemory.subtract(inter);
-        return lower;
+
+    for (auto it = freeMemory.begin(); it != freeMemory.end(); ++it) {
+        char* lower = it->lower();
+        auto inter = memoryInterval::closed(lower, lower + objSize);
+        if(contains(freeMemory, inter)){
+            freeMemory.subtract(inter);
+            return lower;
+        }
     }
-    else{
-        //this shouldn't happen, it means that the first pointer range is lower than an allocatable object.
-        // I don't know what to do
-        //Delete from the list and free ->
-    }
+    return nullptr;
 }
 
 void freeList::free(void * ptr) {

@@ -13,33 +13,23 @@
 void garbageCollector::collect() {
     GcCollectMonitor collectStats{*this, stats};
 
-    std::stack<heapItem*> toMark;
+    std::stack<char*> toMark;
     for (const auto& root : roots) {
-        toMark.push(heap[root.first]);
+        allocator.mark(root.first);
+        toMark.push(root.first);
     }
     while (!toMark.empty()){
-        auto hItem = toMark.top();
+        char* hItem = toMark.top();
         toMark.pop();
-        if(!hItem->marked){
-            hItem->marked = true;
-            auto ptrs = hItem->innerPtrs();
-            std::for_each(ptrs.begin(), ptrs.end(), [&](uint64_t x){
-                toMark.push(heap.at(x));
+        if(!allocator.isMarked(hItem)){
+            allocator.mark(hItem);
+            auto ptrs = allocator.innersPtr(hItem);
+            std::for_each(ptrs.begin(), ptrs.end(), [&](char* x){
+                toMark.push(x);
             });
         }
     }
-
-    heap.erase(std::remove_if(heap.begin(), heap.end(), [&](heapItem* h){
-        if(h->marked){
-            h->marked = false;
-            return false;
-        }
-        else{
-            currentHeapSize -= h->getItemSize();
-            delete h;
-            return true;
-        }
-    }), heap.end());
+    allocator.collectMemory();
 }
 
 bool garbageCollector::canAllocate(size_t objSize) {
@@ -51,13 +41,11 @@ garbageCollector& garbageCollector::get() {
     return gc;
 }
 
-void garbageCollector::addRoot(encodedPtr item) {
-    const auto ptr = item.decode();
-    ++roots[ptr];
+void garbageCollector::addRoot(char* item) {
+    ++roots[item];
 }
-void garbageCollector::removeRoot(encodedPtr item) {
-    const auto ptr = item.decode();
-    auto it = roots.find(ptr);
+void garbageCollector::removeRoot(char* item) {
+    auto it = roots.find(item);
     assert(it != std::end(roots));
     assert(it->second > 0);
 
@@ -71,7 +59,7 @@ void garbageCollector::removeRoot(encodedPtr item) {
 void garbageCollector::_showState() {
     std::cout << "Roots: " << std::endl;
     for (const auto& root : roots) {
-        std::cout << "  " << root.first;
+        std::cout << "  " << static_cast<void*>(root.first);
         std::cout << " (" << root.second << ")";
         std::cout << std::endl;
     }

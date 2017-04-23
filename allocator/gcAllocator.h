@@ -27,12 +27,50 @@ class gcAllocator {
     void* allocateSmall(std::size_t size);
     void* allocateBig(std::size_t size);
 
+    template<class F>
+    void iterateInMemory(F f)
+    {
+        for(auto& mid : gcIndex.rawData())
+        {
+            if(mid){
+                for(auto& bottom : mid->rawData())
+                {
+                    if(bottom)
+                    {
+                        f(bottom);
+                    }
+                }
+            }
+        }
+    }
+
 public:
     gcAllocator();
     bool isValidPtr(char* ptr);
+    void mark(char* ptr){
+        auto i = reinterpret_cast<std::size_t>(ptr);
+        gcIndex.getOrSetData(i)->getData(i)->mark(ptr);
+    }
+    bool isMarked(char* ptr) {
+        auto i = reinterpret_cast<std::size_t>(ptr);
+        return gcIndex.getOrSetData(i)->getData(i)->isMarked(ptr);
+    }
+    void collectMemory(){
+        iterateInMemory([](memoryChunkHeader* chunk){
+           if(chunk->canBeDeleted()){
+               delete chunk;
+               chunk = nullptr;
+           }
+           else{
+               chunk->unMarks();
+           }
+        });
+    }
+
     void* allocate(std::size_t alloc_size);
+    std::vector<char*> innersPtr(char* ptr);
     template<class T>
-    T* allocate(){
+    void* allocate(){
         auto lst = getFreeList(sizeof(T));
         if(!lst.canAllocate()){
             auto m = new memoryChunkHeaderImpl<sizeof(T)>;
@@ -40,7 +78,7 @@ public:
             gcIndex.getOrSetData(ptr)->getData(ptr) = m;
             lst.addMemory(*m);
         }
-        return static_cast<T*>(range.newPrt(lst.allocate(), sizeof(T)));
+        return range.newPrt(lst.allocate(), sizeof(T));
     }
 };
 

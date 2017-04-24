@@ -2,7 +2,7 @@
 
 #include "GcStats.h"
 
-const auto DURATION_CONSTRAINT = std::chrono::milliseconds(5);
+const auto DURATION_CONSTRAINT = std::chrono::milliseconds(1);
 
 GcStats::GcStats()
     : time{}, memory{}, bustedTimeConstraints{} {

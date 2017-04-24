@@ -21,6 +21,7 @@ template <class T, bool IsRoot=false>
 class Gc {
     T* ptr;
 public:
+    Gc() : ptr{nullptr} {}
     Gc(const Gc& other);
 
     template <bool OtherIsRoot>
@@ -74,7 +75,7 @@ Gc<T, IsRoot>::Gc(T* ptr) : ptr{ptr} {
 
 template <class T, bool IsRoot>
 Gc<T, IsRoot>::~Gc() {
-    if (IsRoot) { // non-roots are handled by the GC
+    if (ptr && IsRoot) { // non-roots are handled by the GC
         garbageCollector::get().removeRoot(reinterpret_cast<char*>(ptr));
     }
 }

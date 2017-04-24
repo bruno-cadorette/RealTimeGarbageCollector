@@ -95,25 +95,29 @@ void garbageCollector::_showStats() const {
     cout << std::fixed << std::setprecision(2);
     cout << "      Total collections: "
          << time.count()
-         << endl
-
-         << "           Average time: "
-         << duration_cast<ns>(time.avg()).count() << "ns"
-         << endl
-
-         << "           Maximum time: "
-         << duration_cast<ns>(time.max()).count() << "ns"
-         << endl
-
-         << "     Busted constraints: "
-         << stats.getBustedTimeConstraints()
-         << endl
-
-         << "Average memory overhead: "
-         << memory.avg() * 100.f << "%"
-         << endl
-
-         << "Minimum memory overhead: "
-         << memory.min() * 100.f << "%"
          << endl;
+
+    if (time.count()) {
+        cout << "           Average time: "
+             << duration_cast<ns>(time.avg()).count() << "ns"
+             << endl
+
+             << "           Maximum time: "
+             << duration_cast<ns>(time.max()).count() << "ns"
+             << endl
+
+             << "     Busted constraints: "
+             << stats.getBustedTimeConstraints()
+             << endl;
+    }
+
+    if (memory.count()) {
+        cout << "Average memory overhead: "
+             << memory.avg() * 100.f << "%"
+             << endl
+
+             << "Minimum memory overhead: "
+             << memory.min() * 100.f << "%"
+             << endl;
+    }
 }

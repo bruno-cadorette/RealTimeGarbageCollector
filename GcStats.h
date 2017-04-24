@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 using StatsClock = std::chrono::high_resolution_clock;
 using CollectDuration = StatsClock::duration;
@@ -16,27 +17,23 @@ public:
     void update(const T& stat) {
         max_ = std::max(stat, max_);
         min_ = std::min(stat, min_);
-        total += stat;
+        total_ += stat;
         ++count_;
     }
 
     const T& min() const { return min_; }
     const T& max() const { return max_; }
     T avg() const {
-        if(count() != 0) {
-            return total / count();
-        }
-        else{
-            return {};
-        }
-
+        assert(count());
+        return total() / count();
     }
     std::size_t count() const { return count_; }
+    T total() const { return total_; }
 
 private:
     T min_;
     T max_;
-    T total;
+    T total_;
     std::size_t count_;
 };
 

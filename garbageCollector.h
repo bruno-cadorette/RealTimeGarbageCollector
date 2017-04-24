@@ -24,7 +24,7 @@ class garbageCollector {
 public:
     template<class T, class... Args>
     T* allocate(Args&&... args) {
-        auto ptr = allocator.allocate<T>();
+        auto ptr = allocator.allocate<T>([&] { collect(); });
         return new (ptr) T{std::forward<Args>(args)...};
     }
     void* operator[](const encodedPtr& ptr) {
@@ -39,10 +39,12 @@ public:
 
 
     const GcStats& getStats() const { return stats; }
+    void resetStats() { stats = {}; }
     std::size_t getMemoryOverhead() const;
     std::size_t getManagedMemorySize() const { return currentHeapSize; }
     // Shows information about the GC state (for debug purposes)
-    void _showState();
+    void _showState() const;
+    void _showStats() const;
 };
 
 

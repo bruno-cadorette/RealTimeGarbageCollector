@@ -7,8 +7,10 @@
 #include <stack>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <cassert>
+#include <chrono>
 
 void garbageCollector::collect() {
     GcCollectMonitor collectStats{*this, stats};
@@ -56,7 +58,7 @@ void garbageCollector::removeRoot(char* item) {
     }
 }
 
-void garbageCollector::_showState() {
+void garbageCollector::_showState() const {
     std::cout << "Roots: " << std::endl;
     for (const auto& root : roots) {
         std::cout << "  " << static_cast<void*>(root.first);
@@ -78,4 +80,40 @@ std::size_t garbageCollector::getMemoryOverhead() const {
     return our_size +
            heap_item_size * heap.size() +
            root_size * roots.size();
+}
+
+void garbageCollector::_showStats() const {
+    using std::chrono::duration_cast;
+    using std::cout;
+    using std::endl;
+    using std::setprecision;
+    using ns = std::chrono::nanoseconds;
+
+    const auto stats = garbageCollector::get().getStats();
+    const auto time = stats.getTimeStats();
+    const auto memory = stats.getMemoryStats();
+    cout << std::fixed << std::setprecision(2);
+    cout << "      Total collections: "
+         << time.count()
+         << endl
+
+         << "           Average time: "
+         << duration_cast<ns>(time.avg()).count() << "ns"
+         << endl
+
+         << "           Maximum time: "
+         << duration_cast<ns>(time.max()).count() << "ns"
+         << endl
+
+         << "     Busted constraints: "
+         << stats.getBustedTimeConstraints()
+         << endl
+
+         << "Average memory overhead: "
+         << memory.avg() * 100.f << "%"
+         << endl
+
+         << "Minimum memory overhead: "
+         << memory.min() * 100.f << "%"
+         << endl;
 }

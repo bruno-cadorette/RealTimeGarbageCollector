@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <bitset>
-#include <array>
+#include <memory>
 #include "objectSize.h"
 
 template <std::size_t ELEM_SIZE>
@@ -34,7 +34,7 @@ public:
     }
 };
 
-struct memoryChunkHeader{
+struct memoryChunkHeader {
     virtual char* startOfMemory() = 0;
     std::size_t getMemorySize(){
         return objectSize::PAGE_SIZE;
@@ -52,7 +52,7 @@ struct memoryChunkHeader{
 template <std::size_t ELEM_SIZE>
 class memoryChunkHeaderImpl : public memoryChunkHeader {
 
-    memoryChunk<ELEM_SIZE>* memory;
+    std::unique_ptr<memoryChunk<ELEM_SIZE>> memory;
     std::bitset<objectSize::numberOfElems(ELEM_SIZE)> markBits;
 public:
 
@@ -79,10 +79,6 @@ public:
         return ELEM_SIZE;
     }
     memoryChunkHeaderImpl() : memory{new memoryChunk<ELEM_SIZE>}{
-
-    }
-    ~memoryChunkHeaderImpl(){
-        delete memory;
     }
 };
 

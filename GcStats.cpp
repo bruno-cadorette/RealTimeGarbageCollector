@@ -5,8 +5,7 @@
 const auto DURATION_CONSTRAINT = std::chrono::milliseconds(1);
 
 GcStats::GcStats()
-    : time{}, memory{}, bustedTimeConstraints{} {
-    recordMemory();
+    : time{}, bustedTimeConstraints{} {
 }
 
 void GcStats::recordCollectDuration(CollectDuration duration) noexcept {
@@ -17,24 +16,11 @@ void GcStats::recordCollectDuration(CollectDuration duration) noexcept {
     }
 }
 
-void GcStats::recordMemoryUsage(float usage) noexcept {
-    memory.update(usage);
-}
-
 GcCollectMonitor::GcCollectMonitor(const garbageCollector& gc, GcStats& stats)
     : start{StatsClock::now()}, stats{stats}, gc{gc} {
-}
-
-void GcCollectMonitor::recordMemory() {
-    const auto memory = gc.getManagedMemorySize();
-    if (memory > 0) { // only interested when our GC is managing memory
-        const auto usage = static_cast<float>(gc.getMemoryOverhead()) / memory;
-        stats.recordMemoryUsage(usage);
-    }
 }
 
 GcCollectMonitor::~GcCollectMonitor() {
     const auto end = StatsClock::now();
     stats.recordCollectDuration(end - start);
-    recordMemory();
 }

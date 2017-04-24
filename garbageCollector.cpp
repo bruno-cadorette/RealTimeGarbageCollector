@@ -34,10 +34,6 @@ void garbageCollector::collect() {
     allocator.collectMemory();
 }
 
-bool garbageCollector::canAllocate(size_t objSize) {
-    return currentHeapSize + objSize < MAX_HEAP_SIZE;
-}
-
 garbageCollector& garbageCollector::get() {
     static garbageCollector gc;
     return gc;
@@ -68,20 +64,6 @@ void garbageCollector::_showState() const {
     if (roots.empty()) std::cout << "  (empty)" << std::endl;
 }
 
-std::size_t garbageCollector::getMemoryOverhead() const {
-    const auto our_size = sizeof(garbageCollector);
-
-    // check size of an int heap item, but it's the same for any T.
-    const auto heap_item_size = sizeof(heapItemImpl<int>);
-
-    // root: encoded ptr + counter
-    const auto root_size = sizeof(encodedPtr) + sizeof(size_t);
-
-    return our_size +
-           heap_item_size * heap.size() +
-           root_size * roots.size();
-}
-
 void garbageCollector::_showStats() const {
     using std::chrono::duration_cast;
     using std::cout;
@@ -91,7 +73,6 @@ void garbageCollector::_showStats() const {
 
     const auto stats = garbageCollector::get().getStats();
     const auto time = stats.getTimeStats();
-    const auto memory = stats.getMemoryStats();
     cout << std::fixed << std::setprecision(2);
     cout << "      Total collections: "
          << time.count()
@@ -108,16 +89,6 @@ void garbageCollector::_showStats() const {
 
              << "     Busted constraints: "
              << stats.getBustedTimeConstraints()
-             << endl;
-    }
-
-    if (memory.count()) {
-        cout << "Average memory overhead: "
-             << memory.avg() * 100.f << "%"
-             << endl
-
-             << "Minimum memory overhead: "
-             << memory.min() * 100.f << "%"
              << endl;
     }
 }

@@ -19,7 +19,6 @@ class garbageCollector {
     std::map<char*, std::size_t> roots;
     GcStats stats;
     gcAllocator allocator;
-    bool canAllocate(size_t objSize);
 
 public:
     template<class T, class... Args>
@@ -40,8 +39,6 @@ public:
 
     const GcStats& getStats() const { return stats; }
     void resetStats() { stats = {}; }
-    std::size_t getMemoryOverhead() const;
-    std::size_t getManagedMemorySize() const { return currentHeapSize; }
     // Shows information about the GC state (for debug purposes)
     void _showState() const;
     void _showStats() const;

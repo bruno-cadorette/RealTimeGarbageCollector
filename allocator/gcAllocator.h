@@ -25,7 +25,7 @@ class gcAllocator {
     freeListArray freeLists;
     addressRange range;
     freeList& getFreeList(std::size_t i);
-    std::size_t fullFreeListsCount = 1;
+    std::size_t fullFreeListsCount = 0;
 
     template<class F>
     void iterateInMemory(F f) {

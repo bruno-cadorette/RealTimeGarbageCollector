@@ -60,6 +60,7 @@ public:
     ~GcCollectMonitor();
 
 private:
+    void recordMemory();
     StatsClock::time_point start;
     GcStats& stats;
     const garbageCollector& gc;

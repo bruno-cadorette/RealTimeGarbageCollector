@@ -31,20 +31,11 @@ class gcAllocator {
     void iterateInMemory(F f) {
         for(auto& mid : gcIndex.rawData()) {
             if(mid) {
-                std::cout << "Hi." << std::endl;
-                for (std::size_t i = 0; i < mid->rawData().size(); ++i) {
-                    if (mid->rawData()[i]) {
-                        std::cout << "[" << i << "] = " << mid->rawData()[i] << std::endl;
-                        f(mid->rawData()[i]);
-                        std::cout << "AFTER: " << mid->rawData()[i] << std::endl;
+                for(auto& bottom : mid->rawData()) {
+                    if(bottom) {
+                        f(bottom);
                     }
                 }
-                /* for(auto& bottom : mid->rawData()) { */
-                /*     if(bottom) { */
-                /*         std::cout << bottom << std::endl; */
-                /*         f(bottom); */
-                /*     } */
-                /* } */
             }
         }
     }
@@ -61,11 +52,10 @@ public:
         return gcIndex.getOrSetData(i)->getData(i)->isMarked(ptr);
     }
     void collectMemory() {
-        iterateInMemory([](memoryChunkHeader*& chunk){
+        iterateInMemory([](memoryChunkHeader*& chunk) mutable {
            if (chunk->canBeDeleted()) {
                delete chunk;
                chunk = nullptr;
-               std::cout << "Set to null." << std::endl;
            }
            else {
                chunk->unMarks();

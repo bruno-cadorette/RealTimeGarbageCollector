@@ -20,7 +20,7 @@ class gcIndex {
     std::array<T*, IndexSize> data;
 public:
     gcIndex() : data{} {}
-    std::array<T*, IndexSize> rawData(){
+    std::array<T*, IndexSize>& rawData(){
         return data;
     }
     std::size_t getIndexFromPtr(std::size_t ptr) const noexcept{

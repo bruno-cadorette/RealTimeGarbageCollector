@@ -23,9 +23,6 @@ class gcAllocator {
     freeListArray freeLists;
     addressRange range;
     freeList& getFreeList(std::size_t i);
-    bool isSmallObject(std::size_t size);
-    void* allocateSmall(std::size_t size);
-    void* allocateBig(std::size_t size);
 
     template<class F>
     void iterateInMemory(F f)

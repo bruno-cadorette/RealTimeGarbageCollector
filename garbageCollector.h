@@ -9,11 +9,14 @@
 #include <algorithm>
 #include "heapItem.h"
 #include "encoding.h"
+#include "GcStats.h"
+
 class garbageCollector {
 
     ptrSize currentHeapSize = 0;
     std::vector<heapItem*> heap;
     std::map<std::size_t, std::size_t> roots;
+    GcStats stats;
 
     bool canAllocate(size_t objSize);
 
@@ -47,6 +50,9 @@ public:
     static garbageCollector &get();
 
 
+    const GcStats& getStats() const { return stats; }
+    std::size_t getMemoryOverhead() const;
+    std::size_t getManagedMemorySize() const { return currentHeapSize; }
     // Shows information about the GC state (for debug purposes)
     void _showState();
 };

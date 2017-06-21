@@ -11,6 +11,8 @@
 #include <cassert>
 
 void garbageCollector::collect() {
+    GcCollectMonitor collectStats{*this, stats};
+
     std::stack<heapItem*> toMark;
     for (const auto& root : roots) {
         toMark.push(heap[root.first]);
@@ -74,4 +76,18 @@ void garbageCollector::_showState() {
         std::cout << std::endl;
     }
     if (roots.empty()) std::cout << "  (empty)" << std::endl;
+}
+
+std::size_t garbageCollector::getMemoryOverhead() const {
+    const auto our_size = sizeof(garbageCollector);
+
+    // check size of an int heap item, but it's the same for any T.
+    const auto heap_item_size = sizeof(heapItemImpl<int>);
+
+    // root: encoded ptr + counter
+    const auto root_size = sizeof(encodedPtr) + sizeof(size_t);
+
+    return our_size +
+           heap_item_size * heap.size() +
+           root_size * roots.size();
 }

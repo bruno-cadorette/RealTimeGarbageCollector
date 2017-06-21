@@ -18,15 +18,14 @@ const int IndexSize = 1024;
 template<class T, std::size_t BitLocation>
 class gcIndex {
     T* data[IndexSize] = {};
-    u_int16_t getIndexFromPtr(u_int32_t ptr) const noexcept{
+public:
+    std::size_t getIndexFromPtr(std::size_t ptr) const noexcept{
         return (ptr >> BitLocation) & (IndexSize - 1);
     }
-
-public:
-    T*& getData(u_int32_t ptr){
+    T*& getData(u_int64_t ptr){
         return data[getIndexFromPtr(ptr)];
     }
-    T* getOrSetData(u_int32_t  ptr) {
+    T* getOrSetData(u_int64_t  ptr) {
         auto i = getIndexFromPtr(ptr);
         T*& a = data[i];
         if(!a){

@@ -29,10 +29,4 @@ public:
     bool canAllocate();
 };
 
-template<std::size_t N>
-struct freeListN : public freeList{
-    freeListN() : freeList(N){}
-};
-
-
 #endif //REALTIMEGARBAGECOLLECTOR_FREELIST_H

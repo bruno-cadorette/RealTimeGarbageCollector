@@ -16,14 +16,9 @@
 
 
 
-struct eaindexer{
-    static constexpr std::size_t mapIndex(std::size_t x){
-        return x * 4 + 4;
-    }
-};
-using freeListArray = dependentArray<freeListN, freeList, 1023, eaindexer>;
+using freeListArray = std::vector<freeList>;
 
-class allocator {
+class gcAllocator {
     gcTopIndex gcIndex;
     freeListArray freeLists;
     addressRange range;
@@ -31,18 +26,17 @@ class allocator {
     bool isSmallObject(std::size_t size);
     void* allocateSmall(std::size_t size);
     void* allocateBig(std::size_t size);
-    bool isValidPtr(char* ptr);
-
 
 public:
-
+    gcAllocator();
+    bool isValidPtr(char* ptr);
     void* allocate(std::size_t alloc_size);
     template<class T>
     T* allocate(){
         auto lst = getFreeList(sizeof(T));
         if(!lst.canAllocate()){
             auto m = new memoryChunkHeaderImpl<sizeof(T)>;
-            auto ptr = static_cast<u_int32_t>(m->startOfMemory());
+            auto ptr = reinterpret_cast<std::size_t>(m->startOfMemory());
             gcIndex.getOrSetData(ptr)->getData(ptr) = m;
             lst.addMemory(*m);
         }
